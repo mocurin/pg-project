@@ -66,15 +66,13 @@ func (fp FieldPolynomial) DivMod(oth FieldPolynomial) (quo FieldPolynomial, rem 
 
 	rem = fp
 	quo = fp.f.NewEmptyPolynomial(rem.p.Degree())
-	divDegree := div.p.Degree()
-	divLeadCf := div.p[divDegree]
+	divDegree, divLeadCf := div.p.Leading()
 	for {
-		remDegree := rem.p.Degree()
+		remDegree, remLeadCf := rem.p.Leading()
 		if remDegree < divDegree {
 			break
 		}
 
-		remLeadCf := rem.p[remDegree]
 		leadCf := fp.f.Div(remLeadCf, divLeadCf)
 		leadDegree := remDegree - divDegree
 		quo.p[leadDegree] = fp.f.Add(quo.p[leadDegree], leadCf)
@@ -133,4 +131,28 @@ func (fp FieldPolynomial) Inv() FieldPolynomial {
 
 func (fp FieldPolynomial) Compute(val int) int {
 	return fp.f.Apply(fp.p.Compute(val))
+}
+
+func (fp FieldPolynomial) GCD(oth FieldPolynomial) FieldPolynomial {
+	divident := fp
+	divisor := oth
+	dividentDegree, dividentLeadCf := divident.p.Leading()
+	divisorDegree, divisorLeadCf := divisor.p.Leading()
+	// We have to determine which of the Polynoms is "greatest" to get predictable results in case like this:
+	// GCD([1, 1, 1], [2, 2, 2]) in F3 is [2, 2, 2]
+	// GCD([2, 2, 2], [1, 1, 1]) in F3 is [1, 1, 1]
+	if divisorDegree > dividentDegree || divisorLeadCf > dividentLeadCf {
+		divident, divisor = divisor, divident
+	}
+
+	for {
+		q, r := divident.DivMod(divisor)
+		fmt.Printf("for %s mod %s rem is %s and quo is %s\n", divident.p, divisor.p, r.p, q.p)
+		if r.p.IsZero() {
+			return divisor
+		}
+
+		divident = divisor
+		divisor = r
+	}
 }

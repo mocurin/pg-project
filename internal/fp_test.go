@@ -150,7 +150,7 @@ func TestFPMlt(t *testing.T) {
 	}
 }
 
-func TestDivMod(t *testing.T) {
+func TestFPDivMod(t *testing.T) {
 	for _, c := range []struct {
 		LHS       FieldPolynomial
 		RHS       FieldPolynomial
@@ -207,6 +207,46 @@ func TestDivMod(t *testing.T) {
 
 			if !r.p.Eq(c.Remainder.p) {
 				t.Errorf("expected remainder to match, got %s", r.p)
+			}
+		})
+	}
+}
+
+func TestFPGCD(t *testing.T) {
+	for _, c := range []struct {
+		LHS    FieldPolynomial
+		RHS    FieldPolynomial
+		Expect FieldPolynomial
+	}{
+		{
+			LHS:    NewCorrectFieldPolynomial(3, []int{1, 1, 1}),
+			RHS:    NewCorrectFieldPolynomial(3, []int{1, 1, 1}),
+			Expect: NewCorrectFieldPolynomial(3, []int{1, 1, 1}),
+		},
+		{
+			LHS:    NewCorrectFieldPolynomial(3, []int{1, 1, 1}),
+			RHS:    NewCorrectFieldPolynomial(3, []int{1, 1, 1, 1}),
+			Expect: NewCorrectFieldPolynomial(3, []int{1}),
+		},
+		{
+			LHS:    NewCorrectFieldPolynomial(3, []int{2, 2, 2}),
+			RHS:    NewCorrectFieldPolynomial(3, []int{2}),
+			Expect: NewCorrectFieldPolynomial(3, []int{2}),
+		},
+		{
+			LHS:    NewCorrectFieldPolynomial(3, []int{1, 1, 1}),
+			RHS:    NewCorrectFieldPolynomial(3, []int{2, 2, 2}),
+			Expect: NewCorrectFieldPolynomial(3, []int{1, 1, 1}),
+		},
+		{
+			LHS:    NewCorrectFieldPolynomial(3, []int{2, 2, 2}),
+			RHS:    NewCorrectFieldPolynomial(3, []int{1, 1, 1}),
+			Expect: NewCorrectFieldPolynomial(3, []int{1, 1, 1}),
+		},
+	} {
+		t.Run(fmt.Sprintf("GCD of %s and %s equal to %s", c.LHS.p, c.RHS.p, c.Expect.p), func(t *testing.T) {
+			if got := c.LHS.GCD(c.RHS); !got.p.Eq(c.Expect.p) {
+				t.Fatalf("expected result to match, got %s", got.p)
 			}
 		})
 	}

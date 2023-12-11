@@ -6,6 +6,10 @@ import (
 	"strings"
 )
 
+const (
+	zeroPolynomialDegree = -1
+)
+
 type Polynomial []int
 
 func NewPolynomial(c ...int) Polynomial {
@@ -80,7 +84,7 @@ func (p Polynomial) Degree() int {
 		}
 	}
 
-	return -1
+	return zeroPolynomialDegree
 }
 
 func (p Polynomial) Trim() Polynomial {
@@ -88,7 +92,7 @@ func (p Polynomial) Trim() Polynomial {
 }
 
 func (p Polynomial) IsZero() bool {
-	return p.Degree() == -1
+	return p.Degree() == zeroPolynomialDegree
 }
 
 func (p Polynomial) MinMaxSize(oth Polynomial) (min int, max int) {
@@ -118,4 +122,19 @@ func (p Polynomial) Compute(val int) int {
 		factor *= val
 	}
 	return acc
+}
+
+func (p Polynomial) Leading() (degree int, coeff int) {
+	degree = p.Degree()
+	coeff = 0
+	if degree != zeroPolynomialDegree {
+		coeff = p[degree]
+	}
+
+	return degree, coeff
+}
+
+func (p Polynomial) LeadingCoeff() int {
+	_, coeff := p.Leading()
+	return coeff
 }

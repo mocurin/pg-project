@@ -105,7 +105,7 @@ func TestPolynomialDegree(t *testing.T) {
 		},
 		{
 			Name:       "zero",
-			Expect:     -1,
+			Expect:     zeroPolynomialDegree,
 			Polynomial: NewPolynomial(0, 0, 0, 0, 0, 0, 0),
 		},
 	} {
