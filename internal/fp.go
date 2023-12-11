@@ -12,7 +12,7 @@ type FieldPolynomial struct {
 	p Polynomial
 }
 
-func NewFieldPolynomial(base int, c ...int) (FieldPolynomial, error) {
+func NewFieldPolynomial(base int, c []int) (FieldPolynomial, error) {
 	f, err := NewField(base)
 	if err != nil {
 		return FieldPolynomial{}, fmt.Errorf("failed to create field: %w", err)
@@ -25,25 +25,12 @@ func NewFieldPolynomial(base int, c ...int) (FieldPolynomial, error) {
 	}, nil
 }
 
-func (fp FieldPolynomial) NewPolynomial(c ...int) FieldPolynomial {
-	return FieldPolynomial{
-		f: fp.f,
-		p: NewPolynomial(c...),
+func NewCorrectFieldPolynomial(base int, c []int) FieldPolynomial {
+	f, err := NewFieldPolynomial(base, c)
+	if err != nil {
+		panic(err)
 	}
-}
-
-func (fp FieldPolynomial) NewEmptyPolynomial(pow int) FieldPolynomial {
-	return FieldPolynomial{
-		f: fp.f,
-		p: make(Polynomial, pow),
-	}
-}
-
-func (fp FieldPolynomial) NewMonomial(pow, c int) FieldPolynomial {
-	return FieldPolynomial{
-		f: fp.f,
-		p: NewPolynomial(pow, c),
-	}
+	return f
 }
 
 func (fp FieldPolynomial) Mlt(oth FieldPolynomial) FieldPolynomial {
@@ -51,18 +38,19 @@ func (fp FieldPolynomial) Mlt(oth FieldPolynomial) FieldPolynomial {
 		panic(fieldsMismatchError)
 	}
 
-	size := len(fp.p) + len(oth.p) - 1
+	size := fp.p.Degree() + oth.p.Degree() + 1
 	p := make(Polynomial, size)
 
 	for powOwn, cOwn := range fp.p {
 		for powOth, cOth := range oth.p {
-			p[powOwn+powOth] = fp.f.Mlt(cOwn, cOth)
+			powRes := powOwn + powOth
+			p[powRes] = fp.f.Add(p[powRes], fp.f.Mlt(cOwn, cOth))
 		}
 	}
 
 	return FieldPolynomial{
 		f: fp.f,
-		p: p,
+		p: p.Trim(),
 	}
 }
 
@@ -77,7 +65,7 @@ func (fp FieldPolynomial) DivMod(oth FieldPolynomial) (quo FieldPolynomial, rem 
 	}
 
 	rem = fp
-	quo = fp.NewEmptyPolynomial(rem.p.Degree())
+	quo = fp.f.NewEmptyPolynomial(rem.p.Degree())
 	divDegree := div.p.Degree()
 	divLeadCf := div.p[divDegree]
 	for {
@@ -89,8 +77,8 @@ func (fp FieldPolynomial) DivMod(oth FieldPolynomial) (quo FieldPolynomial, rem 
 		remLeadCf := rem.p[remDegree]
 		leadCf := fp.f.Div(remLeadCf, divLeadCf)
 		leadDegree := remDegree - divDegree
-		quo.p[leadDegree] += leadCf
-		rem = rem.Sub(fp.NewMonomial(leadDegree, leadCf).Mlt(div))
+		quo.p[leadDegree] = fp.f.Add(quo.p[leadDegree], leadCf)
+		rem = rem.Sub(fp.f.NewMonomial(leadDegree, leadCf).Mlt(div))
 	}
 
 	quo.p = quo.p.Trim()
@@ -124,7 +112,7 @@ func (fp FieldPolynomial) Add(oth FieldPolynomial) FieldPolynomial {
 	p = append(p, fp.p.MaxOf(oth.p)[minSize:]...)
 	return FieldPolynomial{
 		f: fp.f,
-		p: p,
+		p: p.Trim(),
 	}
 }
 
@@ -135,7 +123,7 @@ func (fp FieldPolynomial) Sub(oth FieldPolynomial) FieldPolynomial {
 func (fp FieldPolynomial) Inv() FieldPolynomial {
 	p := make(Polynomial, 0, len(fp.p))
 	for _, c := range fp.p {
-		p = append(p, fp.f.Base()-c)
+		p = append(p, fp.f.AddInv(c))
 	}
 	return FieldPolynomial{
 		f: fp.f,

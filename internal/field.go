@@ -9,8 +9,8 @@ const zeroElementMultiplicativeInverseError = "can not find multiplicative inver
 type Field int
 
 func NewField(base int) (Field, error) {
-	if base < 2 {
-		return Field(0), fmt.Errorf("can not make field of base < 2, got: %d", base)
+	if base <= 2 {
+		return Field(0), fmt.Errorf("can not make field of base <= 2, got: %d", base)
 	}
 
 	if !IsPrime(base) {
@@ -69,4 +69,24 @@ func (f Field) ApplySeq(victims ...int) []int {
 		res = append(res, f.Apply(val))
 	}
 	return res
+}
+
+func (f Field) NewPolynomial(c ...int) FieldPolynomial {
+	return FieldPolynomial{
+		f: f,
+		p: NewPolynomial(c...),
+	}
+}
+
+func (f Field) NewEmptyPolynomial(pow int) FieldPolynomial {
+	return FieldPolynomial{
+		f: f,
+		p: make(Polynomial, pow+1),
+	}
+}
+
+func (f Field) NewMonomial(pow, c int) FieldPolynomial {
+	fp := f.NewEmptyPolynomial(pow)
+	fp.p[pow] = c
+	return fp
 }
