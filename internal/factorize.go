@@ -10,17 +10,19 @@ func GetPolynomialPair(f Field, pow int) (FieldPolynomial, FieldPolynomial) {
 	return pq.Add(c), pq.Sub(c)
 }
 
-func factorizeSequentialBody(fp FieldPolynomial, lambda int) []int {
+func factorizeSequentialBody(fp FieldPolynomial, lambda int) (res []int) {
 	if fp.P.Degree() == 1 {
-		return []int{fp.F.Apply(-fp.P[0])}
+		res = []int{fp.F.Apply(-fp.P[0])}
+		return
 	}
 
 	if fp.P.Degree() < 1 {
-		return []int{}
+		res = []int{}
+		return
 	}
 
 	q := (fp.F.Base() - 1) / 2
-	res := []int{}
+	res = []int{}
 	for ; lambda < fp.F.Base(); lambda++ {
 		fp = fp.Substitute(GetSubPolynomial(fp.F, -lambda))
 		if fp.Mod(fp.F.NewMonomial(1, 1)).P.IsZero() {

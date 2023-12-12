@@ -142,7 +142,12 @@ func (fp FieldPolynomial) InvAdd() FieldPolynomial {
 }
 
 func (fp FieldPolynomial) Compute(val int) int {
-	return fp.F.Apply(fp.P.Compute(val))
+	acc, factor := 0, 1
+	for _, c := range fp.P {
+		acc = fp.F.Add(acc, fp.F.Mlt(c, factor))
+		factor = fp.F.Mlt(factor, val)
+	}
+	return acc
 }
 
 func (fp FieldPolynomial) Normalize() FieldPolynomial {

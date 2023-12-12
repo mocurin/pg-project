@@ -14,7 +14,7 @@ func main() {
 
 loop:
 	for {
-		fp := internal.Field(7).RandomPolynomial(6)
+		fp := internal.Field(17).RandomPolynomial(15)
 
 		fmt.Println(fp)
 		r1 := internal.FactorizeSequential(fp)
