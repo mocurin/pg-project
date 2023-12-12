@@ -3,8 +3,9 @@ package internal
 import "fmt"
 
 const (
-	fieldsMismatchError = "fields do not match"
-	zeroDivisionError   = "can not divide by zero"
+	fieldsMismatchError  = "fields do not match"
+	zeroDivisionError    = "can not divide by zero"
+	normalizeFailedError = "normalization ended up with remainder"
 )
 
 type FieldPolynomial struct {
@@ -133,15 +134,31 @@ func (fp FieldPolynomial) Compute(val int) int {
 	return fp.f.Apply(fp.p.Compute(val))
 }
 
+// func (fp FieldPolynomial) Substitute(oth FieldPolynomial) FieldPolynomial {
+// 	if fp.f.Base() != oth.f.Base() {
+// 		panic(fieldsMismatchError)
+// 	}
+
+// 	res := fp.f.NewEmptyPolynomial(fp.p.Degree() + oth.p.Degree() + 1)
+
+// }
+
 func (fp FieldPolynomial) GCD(oth FieldPolynomial) FieldPolynomial {
 	divident := fp
 	divisor := oth
 	dividentDegree, dividentLeadCf := divident.p.Leading()
+	divident, rem := divident.DivMod(fp.f.NewPolynomial(dividentLeadCf))
+	if !rem.p.IsZero() {
+		panic(normalizeFailedError)
+	}
+
 	divisorDegree, divisorLeadCf := divisor.p.Leading()
-	// We have to determine which of the Polynoms is "greatest" to get predictable results in case like this:
-	// GCD([1, 1, 1], [2, 2, 2]) in F3 is [2, 2, 2]
-	// GCD([2, 2, 2], [1, 1, 1]) in F3 is [1, 1, 1]
-	if divisorDegree > dividentDegree || divisorLeadCf > dividentLeadCf {
+	divisor, rem = divisor.DivMod(fp.f.NewPolynomial(divisorLeadCf))
+	if !rem.p.IsZero() {
+		panic(normalizeFailedError)
+	}
+
+	if divisorDegree > dividentDegree {
 		divident, divisor = divisor, divident
 	}
 

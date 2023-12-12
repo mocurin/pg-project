@@ -231,7 +231,7 @@ func TestFPGCD(t *testing.T) {
 		{
 			LHS:    NewCorrectFieldPolynomial(3, []int{2, 2, 2}),
 			RHS:    NewCorrectFieldPolynomial(3, []int{2}),
-			Expect: NewCorrectFieldPolynomial(3, []int{2}),
+			Expect: NewCorrectFieldPolynomial(3, []int{1}),
 		},
 		{
 			LHS:    NewCorrectFieldPolynomial(3, []int{1, 1, 1}),
@@ -243,6 +243,11 @@ func TestFPGCD(t *testing.T) {
 			RHS:    NewCorrectFieldPolynomial(3, []int{1, 1, 1}),
 			Expect: NewCorrectFieldPolynomial(3, []int{1, 1, 1}),
 		},
+		// {
+		// 	LHS:    NewCorrectFieldPolynomial(17, []int{-2, -1, 4, -7, 3, -7, 1}),
+		// 	RHS:    NewCorrectFieldPolynomial(17, []int{0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}),
+		// 	Expect: NewCorrectFieldPolynomial(17, []int{-2, 7, -5, 6, 1}),
+		// },
 	} {
 		t.Run(fmt.Sprintf("GCD of %s and %s equal to %s", c.LHS.p, c.RHS.p, c.Expect.p), func(t *testing.T) {
 			if got := c.LHS.GCD(c.RHS); !got.p.Eq(c.Expect.p) {
