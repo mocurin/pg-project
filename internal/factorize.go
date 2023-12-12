@@ -1,7 +1,5 @@
 package internal
 
-import "fmt"
-
 func GetSubPolynomial(f Field, lambda int) FieldPolynomial {
 	return f.NewPolynomial(lambda, 1)
 }
@@ -14,22 +12,20 @@ func GetPolynomialPair(f Field, pow int) (FieldPolynomial, FieldPolynomial) {
 
 func factorizeSequentialBody(fp FieldPolynomial, lambda int) []int {
 	if fp.P.Degree() == 1 {
-		fmt.Printf("one root %d with degree = 1 for %s\n", fp.F.Apply(-fp.P[0]), fp.P)
 		return []int{fp.F.Apply(-fp.P[0])}
 	}
 
 	if fp.P.Degree() < 1 {
-		fmt.Printf("no roots with degree < 1 for %s\n", fp.P)
 		return []int{}
 	}
 
 	q := (fp.F.Base() - 1) / 2
 	res := []int{}
 	for ; lambda < fp.F.Base(); lambda++ {
-		fp := fp.Substitute(GetSubPolynomial(fp.F, -lambda))
+		fp = fp.Substitute(GetSubPolynomial(fp.F, -lambda))
 		if fp.Mod(fp.F.NewMonomial(1, 1)).P.IsZero() {
-			res = append(res, lambda)
-			fmt.Printf("one root %d on x division for %s\n", lambda, fp.P)
+			res = append(res, fp.F.Apply(-lambda))
+			fp = fp.Div(fp.F.NewMonomial(1, 1)).Substitute(GetSubPolynomial(fp.F, lambda))
 			continue
 		}
 
@@ -50,8 +46,27 @@ func factorizeSequentialBody(fp FieldPolynomial, lambda int) []int {
 }
 
 func FactorizeSequential(fp FieldPolynomial) []int {
+	if fp.P.IsZero() {
+		return []int{}
+	}
+
 	gx := fp.Normalize().GCD(fp.F.NewFullPolynomial()).Normalize()
 	return factorizeSequentialBody(gx, 0)
+}
+
+func FactorizeBrute(fp FieldPolynomial) []int {
+	if fp.P.IsZero() {
+		return []int{}
+	}
+
+	res := []int{}
+	for i := 0; i < fp.F.Base(); i++ {
+		if fp.Compute(i) == 0 {
+			res = append(res, i)
+		}
+	}
+
+	return res
 }
 
 func FactorizeParralel(fp FieldPolynomial) []int {

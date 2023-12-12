@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"math/rand"
 )
 
 const zeroElementMultiplicativeInverseError = "can not find multiplicative inverse for a zero element"
@@ -94,5 +95,14 @@ func (f Field) NewMonomial(pow, c int) FieldPolynomial {
 func (f Field) NewFullPolynomial() FieldPolynomial {
 	fp := f.NewMonomial(f.Base(), 1)
 	fp.P[1] = f.Apply(-1)
+	return fp
+}
+
+func (f Field) RandomPolynomial(pow int) FieldPolynomial {
+	fp := f.NewEmptyPolynomial(pow)
+	for i := range fp.P {
+		fp.P[i] = f.Apply(rand.Int())
+	}
+
 	return fp
 }
