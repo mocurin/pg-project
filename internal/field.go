@@ -37,7 +37,7 @@ func (f Field) MltInv(val int) int {
 	// Since Field is formed from a prime number (base^1), we can find multiplicative inverse using val^(base^1-2)
 	// according to wikipedia:
 	// https://en.wikipedia.org/wiki/Finite_field_arithmetic#Multiplicative_inverse
-	return f.Apply(Pow(val, f.Base()-2))
+	return f.Apply(PowMod(val, f.Base()-2, f.Base()))
 }
 
 func (f Field) Div(lhs, rhs int) int {

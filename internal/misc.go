@@ -1,13 +1,26 @@
 package internal
 
 func Pow(base, pow int) int {
-	if pow == 0 {
-		return 1
+	result := 1
+	for pow > 0 {
+		if pow&1 == 1 {
+			result = result * base
+		}
+		base = base * base
+		pow = pow >> 1
 	}
 
-	result := base
-	for i := 1; i < pow; i++ {
-		result *= base
+	return result
+}
+
+func PowMod(base, pow, mod int) int {
+	result := 1
+	for pow > 0 {
+		if pow&1 == 1 {
+			result = result * base % mod
+		}
+		base = base * base % mod
+		pow = pow >> 1
 	}
 
 	return result
