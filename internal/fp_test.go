@@ -37,9 +37,9 @@ func TestFPAdd(t *testing.T) {
 			Expect: NewCorrectFieldPolynomial(3, []int{1, 2, 1}),
 		},
 	} {
-		t.Run(fmt.Sprintf("addition of %s to %s equal to %s", c.LHS.p, c.RHS.p, c.Expect.p), func(t *testing.T) {
-			if got := c.LHS.Add(c.RHS); !got.p.Eq(c.Expect.p) {
-				t.Fatalf("expected result to match, got %s", got.p)
+		t.Run(fmt.Sprintf("addition of %s to %s equal to %s", c.LHS.P, c.RHS.P, c.Expect.P), func(t *testing.T) {
+			if got := c.LHS.Add(c.RHS); !got.P.Eq(c.Expect.P) {
+				t.Fatalf("expected result to match, got %s", got.P)
 			}
 		})
 	}
@@ -77,9 +77,9 @@ func TestFPSub(t *testing.T) {
 			Expect: NewCorrectFieldPolynomial(3, []int{1, 2, 1}),
 		},
 	} {
-		t.Run(fmt.Sprintf("subtraction of %s from %s equal to %s", c.RHS.p, c.LHS.p, c.Expect.p), func(t *testing.T) {
-			if got := c.LHS.Sub(c.RHS); !got.p.Eq(c.Expect.p) {
-				t.Fatalf("expected result to match, got %s", got.p)
+		t.Run(fmt.Sprintf("subtraction of %s from %s equal to %s", c.RHS.P, c.LHS.P, c.Expect.P), func(t *testing.T) {
+			if got := c.LHS.Sub(c.RHS); !got.P.Eq(c.Expect.P) {
+				t.Fatalf("expected result to match, got %s", got.P)
 			}
 		})
 	}
@@ -107,9 +107,9 @@ func TestFPInv(t *testing.T) {
 			Expect:     NewCorrectFieldPolynomial(3, []int{}),
 		},
 	} {
-		t.Run(fmt.Sprintf("inversion of %s equal to %s", c.Polynomial.p, c.Expect.p), func(t *testing.T) {
-			if got := c.Polynomial.Inv(); !got.p.Eq(c.Expect.p) {
-				t.Fatalf("expected result to match, got %s", got.p)
+		t.Run(fmt.Sprintf("inversion of %s equal to %s", c.Polynomial.P, c.Expect.P), func(t *testing.T) {
+			if got := c.Polynomial.Inv(); !got.P.Eq(c.Expect.P) {
+				t.Fatalf("expected result to match, got %s", got.P)
 			}
 		})
 	}
@@ -142,9 +142,9 @@ func TestFPMlt(t *testing.T) {
 			Expect: NewCorrectFieldPolynomial(3, []int{2, 2, 2}),
 		},
 	} {
-		t.Run(fmt.Sprintf("multiplication of %s to %s equal to %s", c.LHS.p, c.RHS.p, c.Expect.p), func(t *testing.T) {
-			if got := c.LHS.Mlt(c.RHS); !got.p.Eq(c.Expect.p) {
-				t.Fatalf("expected result to match, got %s", got.p)
+		t.Run(fmt.Sprintf("multiplication of %s to %s equal to %s", c.LHS.P, c.RHS.P, c.Expect.P), func(t *testing.T) {
+			if got := c.LHS.Mlt(c.RHS); !got.P.Eq(c.Expect.P) {
+				t.Fatalf("expected result to match, got %s", got.P)
 			}
 		})
 	}
@@ -199,20 +199,42 @@ func TestFPDivMod(t *testing.T) {
 			Remainder: NewCorrectFieldPolynomial(7, []int{6, 4}),
 		},
 	} {
-		t.Run(fmt.Sprintf("division of %s by %s equal to %s quoitet and %s remainder", c.LHS.p, c.RHS.p, c.Quoitet.p, c.Remainder.p), func(t *testing.T) {
+		t.Run(fmt.Sprintf("division of %s by %s equal to %s quoitet and %s remainder", c.LHS.P, c.RHS.P, c.Quoitet.P, c.Remainder.P), func(t *testing.T) {
 			q, r := c.LHS.DivMod(c.RHS)
-			if !q.p.Eq(c.Quoitet.p) {
-				t.Errorf("expected quoitet to match, got %s", q.p)
+			if !q.P.Eq(c.Quoitet.P) {
+				t.Errorf("expected quoitet to match, got %s", q.P)
 			}
 
-			if !r.p.Eq(c.Remainder.p) {
-				t.Errorf("expected remainder to match, got %s", r.p)
+			if !r.P.Eq(c.Remainder.P) {
+				t.Errorf("expected remainder to match, got %s", r.P)
 			}
 		})
 	}
 }
 
-func TestFPGCD(t *testing.T) {
+func TestFPNormalize(t *testing.T) {
+	for _, c := range []struct {
+		Polynomial FieldPolynomial
+		Expect     FieldPolynomial
+	}{
+		{
+			Polynomial: NewCorrectFieldPolynomial(3, []int{1, 1, 1}),
+			Expect:     NewCorrectFieldPolynomial(3, []int{1, 1, 1}),
+		},
+		{
+			Polynomial: NewCorrectFieldPolynomial(3, []int{2, 2, 2}),
+			Expect:     NewCorrectFieldPolynomial(3, []int{1, 1, 1}),
+		},
+	} {
+		t.Run(fmt.Sprintf("normalized of %s equal to %s", c.Polynomial.P, c.Expect.P), func(t *testing.T) {
+			if got := c.Polynomial.Normalize(); !got.P.Eq(c.Expect.P) {
+				t.Fatalf("expected result to match, got %s", got.P)
+			}
+		})
+	}
+}
+
+func TestFPGCDNormalized(t *testing.T) {
 	for _, c := range []struct {
 		LHS    FieldPolynomial
 		RHS    FieldPolynomial
@@ -243,15 +265,65 @@ func TestFPGCD(t *testing.T) {
 			RHS:    NewCorrectFieldPolynomial(3, []int{1, 1, 1}),
 			Expect: NewCorrectFieldPolynomial(3, []int{1, 1, 1}),
 		},
-		// {
-		// 	LHS:    NewCorrectFieldPolynomial(17, []int{-2, -1, 4, -7, 3, -7, 1}),
-		// 	RHS:    NewCorrectFieldPolynomial(17, []int{0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}),
-		// 	Expect: NewCorrectFieldPolynomial(17, []int{-2, 7, -5, 6, 1}),
-		// },
+		{
+			LHS:    NewCorrectFieldPolynomial(17, []int{-2, -1, 4, -7, 3, -7, 1}),
+			RHS:    NewCorrectFieldPolynomial(17, []int{0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}),
+			Expect: NewCorrectFieldPolynomial(17, []int{-2, 7, -5, 6, 1}),
+		},
+		{
+			LHS:    NewCorrectFieldPolynomial(17, []int{-2, -3, 0, 2, 1}),
+			RHS:    NewCorrectFieldPolynomial(17, []int{1, 0, 0, 0, 0, 0, 0, 0, 1}),
+			Expect: NewCorrectFieldPolynomial(17, []int{4, -7, 1}),
+		},
+		{
+			LHS:    NewCorrectFieldPolynomial(17, []int{-2, -3, 0, 2, 1}),
+			RHS:    NewCorrectFieldPolynomial(17, []int{-1, 0, 0, 0, 0, 0, 0, 0, 1}),
+			Expect: NewCorrectFieldPolynomial(17, []int{8, -8, 1}),
+		},
+		{
+			LHS:    NewCorrectFieldPolynomial(17, []int{-2, -3, 0, 2, 1}),
+			RHS:    NewCorrectFieldPolynomial(17, []int{-4, 8, -7, -4}),
+			Expect: NewCorrectFieldPolynomial(17, []int{4, -7, 1}),
+		},
+		{
+			LHS:    NewCorrectFieldPolynomial(17, []int{-2, -3, 0, 2, 1}),
+			RHS:    NewCorrectFieldPolynomial(17, []int{-6, 8, -7, -4}),
+			Expect: NewCorrectFieldPolynomial(17, []int{8, -8, 1}),
+		},
 	} {
-		t.Run(fmt.Sprintf("GCD of %s and %s equal to %s", c.LHS.p, c.RHS.p, c.Expect.p), func(t *testing.T) {
-			if got := c.LHS.GCD(c.RHS); !got.p.Eq(c.Expect.p) {
-				t.Fatalf("expected result to match, got %s", got.p)
+		t.Run(fmt.Sprintf("GCD of %s and %s equal to %s", c.LHS.Normalize().P, c.RHS.Normalize().P, c.Expect.Normalize().P), func(t *testing.T) {
+			if got := c.LHS.Normalize().GCD(c.RHS.Normalize()); !got.Normalize().P.Eq(c.Expect.Normalize().P) {
+				t.Fatalf("expected result to match, got %s", got.Normalize().P)
+			}
+		})
+	}
+}
+
+func TestFPSubstituteNormalized(t *testing.T) {
+	for _, c := range []struct {
+		Source       FieldPolynomial
+		Substitution FieldPolynomial
+		Expect       FieldPolynomial
+	}{
+		{
+			Source:       NewCorrectFieldPolynomial(17, []int{-2, 7, -5, 6, 1}),
+			Substitution: NewCorrectFieldPolynomial(17, []int{-1, 1}),
+			Expect:       NewCorrectFieldPolynomial(17, []int{-2, -3, 0, 2, 1}),
+		},
+		{
+			Source:       NewCorrectFieldPolynomial(17, []int{-2, -5, 1}),
+			Substitution: NewCorrectFieldPolynomial(17, []int{-2, 1}),
+			Expect:       NewCorrectFieldPolynomial(17, []int{-5, 8, 1}),
+		},
+		{
+			Source:       NewCorrectFieldPolynomial(17, []int{1, -6, 1}),
+			Substitution: NewCorrectFieldPolynomial(17, []int{-2, 1}),
+			Expect:       NewCorrectFieldPolynomial(17, []int{0, 7, 1}),
+		},
+	} {
+		t.Run(fmt.Sprintf("substitution of %s to %s equal to %s", c.Substitution.P, c.Source.P, c.Expect.P), func(t *testing.T) {
+			if got := c.Source.Normalize().Substitute(c.Substitution.Normalize()); !got.Normalize().P.Eq(c.Expect.Normalize().P) {
+				t.Fatalf("expected result to match, got %s", got.Normalize().P)
 			}
 		})
 	}

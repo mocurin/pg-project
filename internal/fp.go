@@ -9,8 +9,8 @@ const (
 )
 
 type FieldPolynomial struct {
-	f Field
-	p Polynomial
+	F Field
+	P Polynomial
 }
 
 func NewFieldPolynomial(base int, c []int) (FieldPolynomial, error) {
@@ -22,7 +22,7 @@ func NewFieldPolynomial(base int, c []int) (FieldPolynomial, error) {
 	fc := f.ApplySeq(c...)
 	p := NewPolynomial(fc...)
 	return FieldPolynomial{
-		f: f, p: p,
+		F: f, P: p,
 	}, nil
 }
 
@@ -35,53 +35,63 @@ func NewCorrectFieldPolynomial(base int, c []int) FieldPolynomial {
 }
 
 func (fp FieldPolynomial) Mlt(oth FieldPolynomial) FieldPolynomial {
-	if fp.f != oth.f {
+	if fp.F != oth.F {
 		panic(fieldsMismatchError)
 	}
 
-	size := fp.p.Degree() + oth.p.Degree() + 1
+	fpSize := fp.P.Degree()
+	if fpSize == zeroPolynomialDegree {
+		fpSize += 1
+	}
+
+	othSize := oth.P.Degree()
+	if othSize == zeroPolynomialDegree {
+		othSize += 1
+	}
+
+	size := fpSize + othSize + 1
 	p := make(Polynomial, size)
 
-	for powOwn, cOwn := range fp.p {
-		for powOth, cOth := range oth.p {
+	for powOwn, cOwn := range fp.P {
+		for powOth, cOth := range oth.P {
 			powRes := powOwn + powOth
-			p[powRes] = fp.f.Add(p[powRes], fp.f.Mlt(cOwn, cOth))
+			p[powRes] = fp.F.Add(p[powRes], fp.F.Mlt(cOwn, cOth))
 		}
 	}
 
 	return FieldPolynomial{
-		f: fp.f,
-		p: p.Trim(),
+		F: fp.F,
+		P: p.Trim(),
 	}
 }
 
 func (fp FieldPolynomial) DivMod(oth FieldPolynomial) (quo FieldPolynomial, rem FieldPolynomial) {
-	if fp.f != oth.f {
+	if fp.F != oth.F {
 		panic(fieldsMismatchError)
 	}
 
 	div := oth
-	if div.p.IsZero() {
+	if div.P.IsZero() {
 		panic(zeroDivisionError)
 	}
 
 	rem = fp
-	quo = fp.f.NewEmptyPolynomial(rem.p.Degree())
-	divDegree, divLeadCf := div.p.Leading()
+	quo = fp.F.NewEmptyPolynomial(rem.P.Degree())
+	divDegree, divLeadCf := div.P.Leading()
 	for {
-		remDegree, remLeadCf := rem.p.Leading()
+		remDegree, remLeadCf := rem.P.Leading()
 		if remDegree < divDegree {
 			break
 		}
 
-		leadCf := fp.f.Div(remLeadCf, divLeadCf)
+		leadCf := fp.F.Div(remLeadCf, divLeadCf)
 		leadDegree := remDegree - divDegree
-		quo.p[leadDegree] = fp.f.Add(quo.p[leadDegree], leadCf)
-		rem = rem.Sub(fp.f.NewMonomial(leadDegree, leadCf).Mlt(div))
+		quo.P[leadDegree] = fp.F.Add(quo.P[leadDegree], leadCf)
+		rem = rem.Sub(fp.F.NewMonomial(leadDegree, leadCf).Mlt(div))
 	}
 
-	quo.p = quo.p.Trim()
-	rem.p = rem.p.Trim()
+	quo.P = quo.P.Trim()
+	rem.P = rem.P.Trim()
 	return quo, rem
 }
 
@@ -96,22 +106,22 @@ func (fp FieldPolynomial) Mod(oth FieldPolynomial) FieldPolynomial {
 }
 
 func (fp FieldPolynomial) Add(oth FieldPolynomial) FieldPolynomial {
-	if fp.f != oth.f {
+	if fp.F != oth.F {
 		panic(fieldsMismatchError)
 	}
 
-	minSize, maxSize := fp.p.MinMaxSize(oth.p)
+	minSize, maxSize := fp.P.MinMaxSize(oth.P)
 
 	p := make(Polynomial, 0, maxSize)
 	for i := 0; i < minSize; i++ {
-		c := fp.f.Add(fp.p[i], oth.p[i])
+		c := fp.F.Add(fp.P[i], oth.P[i])
 		p = append(p, c)
 	}
 
-	p = append(p, fp.p.MaxOf(oth.p)[minSize:]...)
+	p = append(p, fp.P.MaxOf(oth.P)[minSize:]...)
 	return FieldPolynomial{
-		f: fp.f,
-		p: p.Trim(),
+		F: fp.F,
+		P: p.Trim(),
 	}
 }
 
@@ -120,52 +130,59 @@ func (fp FieldPolynomial) Sub(oth FieldPolynomial) FieldPolynomial {
 }
 
 func (fp FieldPolynomial) Inv() FieldPolynomial {
-	p := make(Polynomial, 0, len(fp.p))
-	for _, c := range fp.p {
-		p = append(p, fp.f.AddInv(c))
+	p := make(Polynomial, 0, len(fp.P))
+	for _, c := range fp.P {
+		p = append(p, fp.F.AddInv(c))
 	}
 	return FieldPolynomial{
-		f: fp.f,
-		p: p,
+		F: fp.F,
+		P: p,
 	}
 }
 
 func (fp FieldPolynomial) Compute(val int) int {
-	return fp.f.Apply(fp.p.Compute(val))
+	return fp.F.Apply(fp.P.Compute(val))
 }
 
-// func (fp FieldPolynomial) Substitute(oth FieldPolynomial) FieldPolynomial {
-// 	if fp.f.Base() != oth.f.Base() {
-// 		panic(fieldsMismatchError)
-// 	}
+func (fp FieldPolynomial) Normalize() FieldPolynomial {
+	oth := fp.F.NewPolynomial(fp.P.LeadingCoeff())
+	return fp.Div(oth)
+}
 
-// 	res := fp.f.NewEmptyPolynomial(fp.p.Degree() + oth.p.Degree() + 1)
+func (fp FieldPolynomial) Substitute(oth FieldPolynomial) FieldPolynomial {
+	if fp.F.Base() != oth.F.Base() {
+		panic(fieldsMismatchError)
+	}
 
-// }
+	if fp.P.IsZero() {
+		return fp
+	}
+
+	res := fp.F.NewPolynomial(fp.P[0])
+	deg := fp.P.Degree()
+	acc := oth
+	for pow := 1; pow <= deg; pow++ {
+		coef := fp.P[pow]
+		c := fp.F.NewPolynomial(coef)
+		res = res.Add(acc.Mlt(c))
+		acc = acc.Mlt(oth)
+	}
+
+	res.P = res.P.Trim()
+	return res
+}
 
 func (fp FieldPolynomial) GCD(oth FieldPolynomial) FieldPolynomial {
 	divident := fp
 	divisor := oth
-	dividentDegree, dividentLeadCf := divident.p.Leading()
-	divident, rem := divident.DivMod(fp.f.NewPolynomial(dividentLeadCf))
-	if !rem.p.IsZero() {
-		panic(normalizeFailedError)
-	}
-
-	divisorDegree, divisorLeadCf := divisor.p.Leading()
-	divisor, rem = divisor.DivMod(fp.f.NewPolynomial(divisorLeadCf))
-	if !rem.p.IsZero() {
-		panic(normalizeFailedError)
-	}
-
-	if divisorDegree > dividentDegree {
+	if divisor.P.Degree() > divident.P.Degree() {
 		divident, divisor = divisor, divident
 	}
 
 	for {
 		q, r := divident.DivMod(divisor)
-		fmt.Printf("for %s mod %s rem is %s and quo is %s\n", divident.p, divisor.p, r.p, q.p)
-		if r.p.IsZero() {
+		fmt.Printf("for %s mod %s rem is %s and quo is %s\n", divident.P, divisor.P, r.P, q.P)
+		if r.P.IsZero() {
 			return divisor
 		}
 

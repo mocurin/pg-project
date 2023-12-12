@@ -73,27 +73,27 @@ func (f Field) ApplySeq(victims ...int) []int {
 
 func (f Field) NewPolynomial(c ...int) FieldPolynomial {
 	return FieldPolynomial{
-		f: f,
-		p: NewPolynomial(c...),
+		F: f,
+		P: NewPolynomial(c...),
 	}
 }
 
 func (f Field) NewEmptyPolynomial(pow int) FieldPolynomial {
 	return FieldPolynomial{
-		f: f,
-		p: make(Polynomial, pow+1),
+		F: f,
+		P: make(Polynomial, pow+1),
 	}
 }
 
 func (f Field) NewMonomial(pow, c int) FieldPolynomial {
 	fp := f.NewEmptyPolynomial(pow)
-	fp.p[pow] = c
+	fp.P[pow] = c
 	return fp
 }
 
 func (f Field) NewImportantBinomial() FieldPolynomial {
 	fp := f.NewEmptyPolynomial(f.Base())
-	fp.p[f.Base()] = 1
-	fp.p[1] = f.Apply(-1)
+	fp.P[f.Base()] = 1
+	fp.P[1] = f.Apply(-1)
 	return fp
 }

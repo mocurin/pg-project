@@ -7,7 +7,8 @@ import (
 )
 
 func main() {
-	lhs := internal.NewCorrectFieldPolynomial(3, []int{1, 1, 1})
-	rhs := internal.NewCorrectFieldPolynomial(3, []int{2, 2, 2})
-	fmt.Println(lhs.GCD(rhs))
+	f := internal.Field(17)
+	for i := 1; i < f.Base(); i++ {
+		fmt.Println(i, f.MltInv(i))
+	}
 }
