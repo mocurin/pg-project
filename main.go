@@ -7,8 +7,7 @@ import (
 )
 
 func main() {
-	f := internal.Field(17)
-	for i := 1; i < f.Base(); i++ {
-		fmt.Println(i, f.MltInv(i))
-	}
+	fp := internal.NewCorrectFieldPolynomial(17, []int{-2, -1, 4, -7, 3, -7, 1})
+
+	fmt.Println(internal.FactorizeSequential(fp))
 }

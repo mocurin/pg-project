@@ -91,9 +91,8 @@ func (f Field) NewMonomial(pow, c int) FieldPolynomial {
 	return fp
 }
 
-func (f Field) NewImportantBinomial() FieldPolynomial {
-	fp := f.NewEmptyPolynomial(f.Base())
-	fp.P[f.Base()] = 1
+func (f Field) NewFullPolynomial() FieldPolynomial {
+	fp := f.NewMonomial(f.Base(), 1)
 	fp.P[1] = f.Apply(-1)
 	return fp
 }

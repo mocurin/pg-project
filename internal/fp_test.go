@@ -85,7 +85,7 @@ func TestFPSub(t *testing.T) {
 	}
 }
 
-func TestFPInv(t *testing.T) {
+func TestFPInvAdd(t *testing.T) {
 	for _, c := range []struct {
 		Polynomial FieldPolynomial
 		Expect     FieldPolynomial
@@ -108,7 +108,7 @@ func TestFPInv(t *testing.T) {
 		},
 	} {
 		t.Run(fmt.Sprintf("inversion of %s equal to %s", c.Polynomial.P, c.Expect.P), func(t *testing.T) {
-			if got := c.Polynomial.Inv(); !got.P.Eq(c.Expect.P) {
+			if got := c.Polynomial.InvAdd(); !got.P.Eq(c.Expect.P) {
 				t.Fatalf("expected result to match, got %s", got.P)
 			}
 		})

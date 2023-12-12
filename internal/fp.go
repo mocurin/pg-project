@@ -126,14 +126,15 @@ func (fp FieldPolynomial) Add(oth FieldPolynomial) FieldPolynomial {
 }
 
 func (fp FieldPolynomial) Sub(oth FieldPolynomial) FieldPolynomial {
-	return fp.Add(oth.Inv())
+	return fp.Add(oth.InvAdd())
 }
 
-func (fp FieldPolynomial) Inv() FieldPolynomial {
+func (fp FieldPolynomial) InvAdd() FieldPolynomial {
 	p := make(Polynomial, 0, len(fp.P))
 	for _, c := range fp.P {
 		p = append(p, fp.F.AddInv(c))
 	}
+
 	return FieldPolynomial{
 		F: fp.F,
 		P: p,
@@ -180,8 +181,7 @@ func (fp FieldPolynomial) GCD(oth FieldPolynomial) FieldPolynomial {
 	}
 
 	for {
-		q, r := divident.DivMod(divisor)
-		fmt.Printf("for %s mod %s rem is %s and quo is %s\n", divident.P, divisor.P, r.P, q.P)
+		r := divident.Mod(divisor)
 		if r.P.IsZero() {
 			return divisor
 		}
