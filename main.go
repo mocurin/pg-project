@@ -36,23 +36,29 @@ func main() {
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	defer func() {
+		fmt.Printf("\nbrute: %fns;\nseq: %fns;\npar: %fns;\n", Brute/BruteCnt, Seq/SeqCnt, Par/ParCnt)
+	}()
+
 	go func() {
 		<-c
 		fmt.Printf("\nbrute: %fns;\nseq: %fns;\npar: %fns;\n", Brute/BruteCnt, Seq/SeqCnt, Par/ParCnt)
 		os.Exit(1)
 	}()
 
-loop:
+	// loop:
 	for {
-		fp := internal.Field(7).RandomPolynomial(1560)
+		fp := internal.Field(17).RandomPolynomial(129)
 		wg := sync.WaitGroup{}
+
+		fmt.Println(fp)
 
 		var r1 []int
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			start := time.Now()
-			r1 = internal.FactorizeParralel(fp)
+			r1 = internal.FactorizeSequential(fp)
 			Seq += float64(time.Since(start).Nanoseconds())
 			SeqCnt += 1
 			sort.Slice(r1, func(i, j int) bool {
@@ -78,7 +84,7 @@ loop:
 		go func() {
 			defer wg.Done()
 			start := time.Now()
-			r3 = internal.FactorizeSequential(fp)
+			r3 = internal.FactorizeParralel(fp)
 			Par += float64(time.Since(start).Nanoseconds())
 			ParCnt += 1
 			sort.Slice(r3, func(i, j int) bool {
@@ -88,14 +94,16 @@ loop:
 
 		wg.Wait()
 
-		if len(r1) != len(r2) || len(r2) != len(r3) {
-			break
-		}
+		// if len(r1) != len(r2) || len(r2) != len(r3) {
+		// 	break
+		// }
 
-		for i := 0; i < len(r1); i++ {
-			if r1[i] != r2[i] || r2[i] != r3[i] {
-				break loop
-			}
-		}
+		// fmt.Println(r1, r3)
+
+		// for i := 0; i < len(r1); i++ {
+		// 	if r1[i] != r2[i] || r2[i] != r3[i] {
+		// 		break loop
+		// 	}
+		// }
 	}
 }

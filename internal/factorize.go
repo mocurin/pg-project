@@ -70,15 +70,17 @@ func factorizeParallelBody(fp FieldPolynomial, lambda int) (res []int) {
 
 	q := (fp.F.Base() - 1) / 2
 	res = []int{}
+	var nfp FieldPolynomial
 	for ; lambda < fp.F.Base(); lambda++ {
-		fp = fp.Substitute(GetSubPolynomial(fp.F, -lambda))
-		if fp.Mod(fp.F.NewMonomial(1, 1)).P.IsZero() {
+		nfp = fp.Substitute(GetSubPolynomial(fp.F, -lambda))
+		if nfp.Mod(fp.F.NewMonomial(1, 1)).P.IsZero() {
 			res = append(res, fp.F.Apply(-lambda))
-			fp = fp.Div(fp.F.NewMonomial(1, 1)).Substitute(GetSubPolynomial(fp.F, lambda))
+			fp = fp.Div(GetSubPolynomial(fp.F, lambda))
 			continue
 		}
 		break
 	}
+	fp = nfp
 
 	q1, q2 := GetPolynomialPair(fp.F, q)
 
@@ -88,12 +90,12 @@ func factorizeParallelBody(fp FieldPolynomial, lambda int) (res []int) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		g1 := q1.Normalize().GCD(fp.Normalize()).Normalize()
+		g1 := q1.GCD(fp).Normalize()
 		g1 = g1.Substitute(GetSubPolynomial(fp.F, lambda))
 		reqRes[0] = factorizeParallelBody(g1, lambda+1)
 	}()
 
-	g2 := q2.Normalize().GCD(fp.Normalize()).Normalize()
+	g2 := q2.GCD(fp).Normalize()
 	g2 = g2.Substitute(GetSubPolynomial(fp.F, lambda))
 	reqRes[1] = factorizeParallelBody(g2, lambda+1)
 
